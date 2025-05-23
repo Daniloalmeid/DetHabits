@@ -1,0 +1,178 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+  }
+  
+  body {
+    background-color: #FFF9E6;
+  }
+  
+  .container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  .main-card {
+    flex: 1;
+    background: linear-gradient(#2A9D8F, #264653);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .menu {
+    position: fixed;
+    top: 0;
+    left: -70%;
+    width: 70%;
+    height: 100%;
+    background: linear-gradient(#D4A017, #FFF3B0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+  
+  .menu.active {
+    left: 0;
+  }
+  
+  .menu-content {
+    padding: 20px;
+  }
+  
+  .menu-spacer {
+    height: 30px;
+  }
+  
+  .menu-item {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    font-size: 18px;
+    color: #000;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
+  .social-title {
+    font-size: 16px;
+    color: #2A9D8F;
+    font-weight: bold;
+    margin: 12px 0;
+  }
+  
+  .close-button {
+    margin-top: 12px;
+    padding: 10px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .menu-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    background: #FFFFFF;
+    border-radius: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: #2A9D8F;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    border: none;
+    z-index: 10;
+  }
+  
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px;
+    padding-bottom: 80px;
+  }
+  
+  .page {
+    display: none;
+    width: 100%;
+    text-align: center;
+    color: #FFF;
+  }
+  
+  .page.active {
+    display: block;
+  }
+  
+  .title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #FFD700;
+    text-align: center;
+    margin: 60px 0 10px;
+  }
+  
+  .image {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 20px;
+  }
+  
+  .address {
+    font-size: 16px;
+    color: #FFFFFF;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .join-button, .presale-button {
+    background: linear-gradient(#F4C430, #FFD700);
+    padding: 14px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  .presale-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .button-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #264653;
+  }
+  
+  @media (max-width: 768px) {
+    .main-card {
+      margin: 10px;
+      padding: 10px;
+    }
+  
+    .title {
+      font-size: 28px;
+    }
+  
+    .menu {
+      width: 80%;
+    }
+  }

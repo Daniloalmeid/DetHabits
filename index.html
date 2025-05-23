@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DetHabits</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="assets/icon.png">
+</head>
+<body>
+  <div class="container">
+    <!-- Menu Lateral -->
+    <div class="menu" id="menu">
+      <div class="menu-content">
+        <div class="menu-spacer"></div>
+        <a href="#" class="menu-item" onclick="navigateTo('home')">Home</a>
+        <a href="#" class="menu-item" onclick="navigateTo('missions')">Missions</a>
+        <a href="#" class="menu-item" onclick="navigateTo('wallet')">Wallet</a>
+        <a href="#" class="menu-item" onclick="navigateTo('presale')">PreSale</a>
+        <a href="#" class="menu-item" onclick="navigateTo('whitepaper')">Whitepaper</a>
+        <a href="#" class="menu-item" onclick="navigateTo('stake')">Stake</a>
+        <a href="#" class="menu-item" onclick="navigateTo('spend-credits')">Spend Credits</a>
+        <div class="social-title">Official Social Media</div>
+        <a href="https://twitter.com/DetHabits" target="_blank" class="menu-item">X (Twitter)</a>
+        <a href="https://t.me/DetHabits" target="_blank" class="menu-item">Telegram</a>
+        <a href="https://instagram.com/DetHabits" target="_blank" class="menu-item">Instagram</a>
+        <button class="close-button" onclick="toggleMenu()">Close</button>
+      </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="main-card">
+      <button class="menu-button" onclick="toggleMenu()">☰</button>
+      <div class="content" id="content">
+        <div id="home" class="page active">
+          <h1 class="title">Welcome to DetHabits</h1>
+          <img src="assets/bemvindo.png" alt="Welcome" class="image" onerror="this.src='https://via.placeholder.com/200'">
+          <p id="wallet-address" class="address"></p>
+          <button id="wallet-button" class="join-button" onclick="connectWallet()">
+            <span class="button-text">Connect Solana Wallet</span>
+          </button>
+          <button class="presale-button" onclick="navigateTo('presale')">
+            <span class="button-text">Pre-Sale</span>
+          </button>
+        </div>
+        <div id="missions" class="page">Missions Page</div>
+        <div id="wallet" class="page">Wallet Page</div>
+        <div id="presale" class="page">PreSale Page</div>
+        <div id="whitepaper" class="page">Whitepaper Page</div>
+        <div id="stake" class="page">Stake Page</div>
+        <div id="spend-credits" class="page">Spend Credits Page</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="https://unpkg.com/@solana/wallet-adapter-base@latest/dist/index.umd.js"></script>
+  <script src="https://unpkg.com/@solana/wallet-adapter-wallets@latest/dist/index.umd.js"></script>
+  <script src="https://unpkg.com/@solana/wallet-adapter-walletconnect@latest/dist/index.umd.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
