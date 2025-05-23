@@ -1,4 +1,3 @@
-// Configuração do Solana Wallet Adapter
 const { WalletAdapterNetwork } = window.SolanaWalletAdapterBase;
 const { PhantomWalletAdapter } = window.SolanaWalletAdapterWallets;
 const network = WalletAdapterNetwork.Mainnet;
@@ -6,7 +5,6 @@ const wallet = new PhantomWalletAdapter();
 
 let walletAddress = null;
 
-// Carregar endereço da carteira do localStorage
 document.addEventListener('DOMContentLoaded', async () => {
   walletAddress = localStorage.getItem('walletAddress');
   updateWalletUI();
@@ -25,13 +23,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Alternar menu
 function toggleMenu() {
   const menu = document.getElementById('menu');
   menu.classList.toggle('active');
 }
 
-// Atualizar UI da carteira
 function updateWalletUI() {
   const walletButton = document.getElementById('wallet-button');
   const walletAddressElement = document.getElementById('wallet-address');
@@ -46,7 +42,6 @@ function updateWalletUI() {
   }
 }
 
-// Conectar carteira
 async function connectWallet() {
   try {
     await wallet.connect();
@@ -65,7 +60,6 @@ async function connectWallet() {
   }
 }
 
-// Desconectar carteira
 async function disconnectWallet() {
   try {
     await wallet.disconnect();
@@ -80,7 +74,6 @@ async function disconnectWallet() {
   }
 }
 
-// Navegação
 function navigateTo(page) {
   const pages = document.querySelectorAll('.page');
   const protectedPages = ['missions', 'wallet', 'presale', 'stake', 'spend-credits'];

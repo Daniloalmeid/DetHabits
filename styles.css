@@ -7,12 +7,14 @@
   
   body {
     background-color: #FFF9E6;
+    overflow-x: hidden; /* Evita barras horizontais */
   }
   
   .container {
     display: flex;
     min-height: 100vh;
     position: relative;
+    overflow-x: hidden; /* Garante que o menu não vaze */
   }
   
   .main-card {
@@ -29,13 +31,14 @@
   .menu {
     position: fixed;
     top: 0;
-    left: -70%;
+    left: -100%; /* Move completamente para fora da tela */
     width: 70%;
     height: 100%;
     background: linear-gradient(#D4A017, #FFF3B0);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     transition: left 0.3s ease;
     z-index: 1000;
+    overflow: hidden; /* Evita que conteúdo interno vaze */
   }
   
   .menu.active {
@@ -174,5 +177,10 @@
   
     .menu {
       width: 80%;
+      left: -100%; /* Garante que o menu fique fora da tela em telas pequenas */
+    }
+  
+    .menu.active {
+      left: 0;
     }
   }
