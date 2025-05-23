@@ -36,7 +36,7 @@
           <h1 class="title">Welcome to DetHabits</h1>
           <img src="assets/bemvindo.png" alt="Welcome" class="image" onerror="this.src='https://via.placeholder.com/200'">
           <p id="wallet-address" class="address"></p>
-          <button id="wallet-button" class="join-button" onclick="connectWallet()">
+          <button id="wallet-button" class="join-button">
             <span class="button-text">Connect Solana Wallet</span>
           </button>
           <button class="presale-button" onclick="navigateTo('presale')">
@@ -53,20 +53,6 @@
     </div>
   </div>
 
-  <!-- Scripts locais -->
-  <script defer src="libs/solana-web3.min.js"></script>
-  <script defer src="libs/wallet-adapter-base.min.js"></script>
-  <script defer src="libs/wallet-adapter-wallets.min.js"></script>
-  <script defer>
-    window.addEventListener('load', () => {
-      if (!window.SolanaWalletAdapterBase || !window.SolanaWalletAdapterWallets) {
-        console.error("Falha ao carregar bibliotecas Solana.");
-        alert("Failed to load Solana libraries. Please refresh the page.");
-      } else {
-        console.log("Bibliotecas Solana carregadas com sucesso.");
-      }
-    });
-  </script>
   <script defer src="script.js"></script>
 </body>
 </html>
