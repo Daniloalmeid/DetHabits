@@ -7,62 +7,39 @@ function checkPhantom() {
     console.error("Phantom não detectado. Verifique se a extensão está instalada.");
     return false;
   }
-  console.log("Phantom detectado.");
+  console.log("Phantom detectado:", window.solana);
   return true;
 }
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log("Inicializando site DetHabits...");
+// Inicializar wallet
+function initializeWallet() {
+  if (wallet) {
+    console.log("Wallet já inicializado:", wallet);
+    return true;
+  }
   try {
-    // Verificar se as bibliotecas estão carregadas
     if (!window.SolanaWalletAdapterBase || !window.SolanaWalletAdapterWallets) {
       throw new Error("Bibliotecas Solana não carregadas.");
     }
-    
-    // Inicializar wallet
     const { WalletAdapterNetwork } = window.SolanaWalletAdapterBase;
     const { PhantomWalletAdapter } = window.SolanaWalletAdapterWallets;
     wallet = new PhantomWalletAdapter();
-    console.log("Wallet inicializado:", wallet);
-
-    // Carregar endereço da carteira do localStorage
-    walletAddress = localStorage.getItem('walletAddress');
-    updateWalletUI();
-    if (walletAddress && checkPhantom()) {
-      try {
-        console.log("Tentando reconectar carteira...");
-        await wallet.connect();
-        if (wallet.publicKey) {
-          walletAddress = wallet.publicKey.toString();
-          localStorage.setItem('walletAddress', walletAddress);
-          console.log("Carteira reconectada:", walletAddress);
-          updateWalletUI();
-        } else {
-          console.error("Nenhuma chave pública retornada ao reconectar.");
-          localStorage.removeItem('walletAddress');
-          walletAddress = null;
-          updateWalletUI();
-        }
-      } catch (err) {
-        console.error('Erro ao reconectar carteira:', err.message, err);
-        localStorage.removeItem('walletAddress');
-        walletAddress = null;
-        updateWalletUI();
-      }
-    }
+    console.log("Wallet inicializado com sucesso:", wallet);
+    return true;
   } catch (err) {
-    console.error("Erro na inicialização:", err.message, err);
-    alert("Failed to initialize wallet: " + err.message);
+    console.error("Erro ao inicializar wallet:", err.message, err);
+    return false;
   }
-});
-
-// Alternar menu
-function toggleMenu() {
-  const menu = document.getElementById('menu');
-  menu.classList.toggle('active');
-  console.log("Menu toggled:", menu.classList.contains('active') ? "Aberto" : "Fechado");
 }
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("Inicializando site DetHabits...");
+  // Carregar endereço da carteira do localStorage
+  walletAddress = localStorage.getItem('walletAddress');
+  updateWalletUI();
+  console.log("Endereço inicial do localStorage:", walletAddress || "Nenhum");
+});
 
 // Atualizar UI da carteira
 function updateWalletUI() {
@@ -83,9 +60,9 @@ function updateWalletUI() {
 
 // Conectar carteira
 async function connectWallet() {
-  if (!wallet) {
-    console.error("Wallet não inicializado.");
-    alert("Wallet not initialized. Please refresh the page.");
+  if (!initializeWallet()) {
+    alert("Wallet not initialized. Please check your internet connection and refresh the page.");
+    console.error("Falha ao inicializar wallet para conexão.");
     return;
   }
   if (!checkPhantom()) {
@@ -114,8 +91,8 @@ async function connectWallet() {
 // Desconectar carteira
 async function disconnectWallet() {
   if (!wallet) {
-    console.error("Wallet não inicializado.");
     alert("Wallet not initialized. Please refresh the page.");
+    console.error("Wallet não inicializado para desconexão.");
     return;
   }
   try {
@@ -131,6 +108,13 @@ async function disconnectWallet() {
     console.error('Erro ao desconectar carteira:', err.message, err);
     alert('Failed to disconnect wallet: ' + err.message);
   }
+}
+
+// Alternar menu
+function toggleMenu() {
+  const menu = document.getElementById('menu');
+  menu.classList.toggle('active');
+  console.log("Menu toggled:", menu.classList.contains('active') ? "Aberto" : "Fechado");
 }
 
 // Navegação
