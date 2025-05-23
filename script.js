@@ -1,3 +1,4 @@
+// Configuração do Solana Wallet Adapter
 const { WalletAdapterNetwork } = window.SolanaWalletAdapterBase;
 const { PhantomWalletAdapter } = window.SolanaWalletAdapterWallets;
 const network = WalletAdapterNetwork.Mainnet;
@@ -5,17 +6,43 @@ const wallet = new PhantomWalletAdapter();
 
 let walletAddress = null;
 
+// Verificar se Phantom está disponível
+function checkPhantom() {
+  if (!window.solana || !window.solana.isPhantom) {
+    console.error("Phantom não detectado. Verifique se a extensão está instalada.");
+    return false;
+  }
+  return true;
+}
+
+// Carregar endereço da carteira do localStorage
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log("Inicializando site DetHabits...");
   walletAddress = localStorage.getItem('walletAddress');
   updateWalletUI();
   if (walletAddress) {
-    try {
-      await wallet.connect();
-      walletAddress = wallet.publicKey.toString();
-      localStorage.setItem('walletAddress', walletAddress);
-      updateWalletUI();
-    } catch (err) {
-      console.error('Erro ao reconectar carteira:', err.message);
+    if (checkPhantom()) {
+      try {
+        await wallet.connect();
+        if (wallet.publicKey) {
+          walletAddress = wallet.publicKey.toString();
+          localStorage.setItem('walletAddress', walletAddress);
+          console.log("Carteira reconectada:", walletAddress);
+          updateWalletUI();
+        } else {
+          console.error("Nenhuma chave pública retornada ao reconectar.");
+          localStorage.removeItem('walletAddress');
+          walletAddress = null;
+          updateWalletUI();
+        }
+      } catch (err) {
+        console.error('Erro ao reconectar carteira:', err.message, err);
+        localStorage.removeItem('walletAddress');
+        walletAddress = null;
+        updateWalletUI();
+      }
+    } else {
+      console.error("Phantom não disponível ao tentar reconectar.");
       localStorage.removeItem('walletAddress');
       walletAddress = null;
       updateWalletUI();
@@ -23,11 +50,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// Alternar menu
 function toggleMenu() {
   const menu = document.getElementById('menu');
   menu.classList.toggle('active');
+  console.log("Menu toggled:", menu.classList.contains('active') ? "Aberto" : "Fechado");
 }
 
+// Atualizar UI da carteira
 function updateWalletUI() {
   const walletButton = document.getElementById('wallet-button');
   const walletAddressElement = document.getElementById('wallet-address');
@@ -35,56 +65,71 @@ function updateWalletUI() {
     walletButton.innerHTML = '<span class="button-text">Disconnect Wallet</span>';
     walletButton.onclick = disconnectWallet;
     walletAddressElement.textContent = `Connected Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+    console.log("UI atualizada: Carteira conectada", walletAddress);
   } else {
     walletButton.innerHTML = '<span class="button-text">Connect Solana Wallet</span>';
     walletButton.onclick = connectWallet;
     walletAddressElement.textContent = '';
+    console.log("UI atualizada: Carteira desconectada");
   }
 }
 
+// Conectar carteira
 async function connectWallet() {
+  if (!checkPhantom()) {
+    alert("Phantom não encontrado. Instale a extensão Phantom e configure para Mainnet.");
+    return;
+  }
   try {
+    console.log("Tentando conectar carteira...");
     await wallet.connect();
     if (wallet.publicKey) {
       walletAddress = wallet.publicKey.toString();
       localStorage.setItem('walletAddress', walletAddress);
       updateWalletUI();
       alert(`Wallet connected: ${walletAddress}`);
+      console.log("Carteira conectada com sucesso:", walletAddress);
       navigateTo('missions');
     } else {
       throw new Error('No public key returned');
     }
   } catch (err) {
-    console.error('Erro ao conectar carteira:', err.message);
-    alert('Failed to connect wallet. Ensure Phantom is installed and configured for Mainnet.');
+    console.error('Erro ao conectar carteira:', err.message, err);
+    alert('Failed to connect wallet: ' + err.message + '. Ensure Phantom is installed and configured for Mainnet.');
   }
 }
 
+// Desconectar carteira
 async function disconnectWallet() {
   try {
+    console.log("Desconectando carteira...");
     await wallet.disconnect();
     localStorage.removeItem('walletAddress');
     walletAddress = null;
     updateWalletUI();
     alert('Wallet disconnected');
+    console.log("Carteira desconectada com sucesso");
     navigateTo('home');
   } catch (err) {
-    console.error('Erro ao desconectar carteira:', err.message);
-    alert('Failed to disconnect wallet');
+    console.error('Erro ao desconectar carteira:', err.message, err);
+    alert('Failed to disconnect wallet: ' + err.message);
   }
 }
 
+// Navegação
 function navigateTo(page) {
   const pages = document.querySelectorAll('.page');
   const protectedPages = ['missions', 'wallet', 'presale', 'stake', 'spend-credits'];
   if (protectedPages.includes(page) && !walletAddress) {
     alert('Please connect your wallet first.');
+    console.log("Tentativa de acessar página protegida sem carteira:", page);
     return;
   }
   pages.forEach(p => p.classList.remove('active'));
   const targetPage = document.getElementById(page);
   if (targetPage) {
     targetPage.classList.add('active');
+    console.log("Navegado para página:", page);
   }
   toggleMenu();
 }
