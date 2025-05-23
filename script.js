@@ -19,7 +19,8 @@ function initializeWallet() {
   }
   try {
     if (!window.SolanaWalletAdapterBase || !window.SolanaWalletAdapterWallets) {
-      throw new Error("Bibliotecas Solana não carregadas.");
+      console.error("Bibliotecas Solana não carregadas.");
+      return false;
     }
     const { WalletAdapterNetwork } = window.SolanaWalletAdapterBase;
     const { PhantomWalletAdapter } = window.SolanaWalletAdapterWallets;
@@ -32,13 +33,47 @@ function initializeWallet() {
   }
 }
 
+// Verificar acesso ao localStorage
+function safeLocalStorageGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (err) {
+    console.error("Erro ao acessar localStorage (get):", err.message);
+    return null;
+  }
+}
+
+function safeLocalStorageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    console.error("Erro ao acessar localStorage (set):", err.message);
+    return false;
+  }
+}
+
+function safeLocalStorageRemove(key) {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch (err) {
+    console.error("Erro ao acessar localStorage (remove):", err.message);
+    return false;
+  }
+}
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Inicializando site DetHabits...");
-  // Carregar endereço da carteira do localStorage
-  walletAddress = localStorage.getItem('walletAddress');
-  updateWalletUI();
-  console.log("Endereço inicial do localStorage:", walletAddress || "Nenhum");
+  try {
+    // Carregar endereço da carteira do localStorage
+    walletAddress = safeLocalStorageGet('walletAddress');
+    updateWalletUI();
+    console.log("Endereço inicial do localStorage:", walletAddress || "Nenhum");
+  } catch (err) {
+    console.error("Erro na inicialização:", err.message, err);
+  }
 });
 
 // Atualizar UI da carteira
@@ -61,7 +96,7 @@ function updateWalletUI() {
 // Conectar carteira
 async function connectWallet() {
   if (!initializeWallet()) {
-    alert("Wallet not initialized. Please check your internet connection and refresh the page.");
+    alert("Failed to initialize wallet. Please refresh the page.");
     console.error("Falha ao inicializar wallet para conexão.");
     return;
   }
@@ -74,7 +109,11 @@ async function connectWallet() {
     await wallet.connect();
     if (wallet.publicKey) {
       walletAddress = wallet.publicKey.toString();
-      localStorage.setItem('walletAddress', walletAddress);
+      if (safeLocalStorageSet('walletAddress', walletAddress)) {
+        console.log("Endereço salvo no localStorage:", walletAddress);
+      } else {
+        console.warn("Não foi possível salvar o endereço no localStorage.");
+      }
       updateWalletUI();
       alert(`Wallet connected: ${walletAddress}`);
       console.log("Carteira conectada com sucesso:", walletAddress);
@@ -98,7 +137,11 @@ async function disconnectWallet() {
   try {
     console.log("Desconectando carteira...");
     await wallet.disconnect();
-    localStorage.removeItem('walletAddress');
+    if (safeLocalStorageRemove('walletAddress')) {
+      console.log("Endereço removido do localStorage.");
+    } else {
+      console.warn("Não foi possível remover o endereço do localStorage.");
+    }
     walletAddress = null;
     updateWalletUI();
     alert('Wallet disconnected');

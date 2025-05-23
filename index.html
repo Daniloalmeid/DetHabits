@@ -53,16 +53,17 @@
     </div>
   </div>
 
-  <!-- Scripts com jsDelivr e fallback -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-base@0.9.23/dist/index.umd.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-wallets@0.19.32/dist/index.umd.min.js"></script>
+  <!-- Scripts locais -->
+  <script defer src="libs/solana-web3.min.js"></script>
+  <script defer src="libs/wallet-adapter-base.min.js"></script>
+  <script defer src="libs/wallet-adapter-wallets.min.js"></script>
   <script defer>
-    // Fallback para verificar carregamento
     window.addEventListener('load', () => {
       if (!window.SolanaWalletAdapterBase || !window.SolanaWalletAdapterWallets) {
-        console.error("Falha ao carregar bibliotecas Solana. Verifique a conexão ou tente novamente.");
-        alert("Failed to load Solana libraries. Please check your internet connection and refresh.");
+        console.error("Falha ao carregar bibliotecas Solana.");
+        alert("Failed to load Solana libraries. Please refresh the page.");
+      } else {
+        console.log("Bibliotecas Solana carregadas com sucesso.");
       }
     });
   </script>
