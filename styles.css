@@ -195,8 +195,42 @@ body {
 }
 
 .missions-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   margin: 10px 0;
+}
+
+.missions-list li span {
+  color: #FFD700;
+  font-size: 14px;
+}
+
+.mission-button {
+  background: linear-gradient(#F4C430, #FFD700);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  color: #264653;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.mission-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.reward-status {
   font-size: 16px;
+  font-weight: 600;
+  color: #FFD700;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {

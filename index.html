@@ -51,13 +51,14 @@
           </button>
         </div>
         <div id="missions" class="page">
-          <h1 class="title">Missions</h1>
-          <p>Complete missions to earn rewards!</p>
-          <ul class="missions-list">
-            <li><strong>Mission 1:</strong> Connect your wallet (Reward: 10 Credits)</li>
-            <li><strong>Mission 2:</strong> Follow us on X (Reward: 5 Credits)</li>
-            <li><strong>Mission 3:</strong> Join our Telegram (Reward: 5 Credits)</li>
+          <h1 class="title">Missões Diárias</h1>
+          <p>Complete as missões abaixo para ganhar Credits!</p>
+          <ul class="missions-list" id="missions-list">
+            <li><strong>Missão 1:</strong> Conectar sua carteira <span>(10 Credits)</span> <button class="mission-button" onclick="completeMission(1)">Completar</button></li>
+            <li><strong>Missão 2:</strong> Seguir no X <span>(5 Credits)</span> <button class="mission-button" onclick="completeMission(2)">Completar</button></li>
+            <li><strong>Missão 3:</strong> Entrar no Telegram <span>(5 Credits)</span> <button class="mission-button" onclick="completeMission(3)">Completar</button></li>
           </ul>
+          <p class="reward-status">Credits ganhos hoje: <span id="total-credits">0</span></p>
         </div>
         <div id="wallet" class="page">Wallet Page</div>
         <div id="presale" class="page">PreSale Page</div>
