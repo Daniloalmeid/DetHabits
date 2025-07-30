@@ -6,9 +6,17 @@
   <title>DetHabits - Financial Habits & Rewards</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="assets/icon.png">
+  <!-- Importar @solana/web3.js via CDN -->
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 </head>
 <body>
   <div class="container">
+    <!-- Notificação Personalizada -->
+    <div id="notification" class="notification hidden">
+      <span id="notification-message"></span>
+      <button id="notification-close" onclick="closeNotification()">✕</button>
+    </div>
+
     <!-- Menu Lateral -->
     <div class="menu" id="menu">
       <div class="menu-content">
@@ -37,7 +45,7 @@
 
     <!-- Conteúdo Principal -->
     <div class="main-card">
-      <button class="menu-button" onclick="toggleMenu()">☰</button>
+      <button class="menu-button" onclick="toggleMenu()" aria-label="Toggle Menu">☰</button>
       <div class="content" id="content">
         <div id="home" class="page active">
           <h1 class="title">Welcome to DetHabits</h1>
@@ -60,7 +68,21 @@
           </ul>
           <p class="reward-status">Credits ganhos hoje: <span id="total-credits">0</span></p>
         </div>
-        <div id="wallet" class="page">Wallet Page</div>
+        <div id="wallet" class="page">
+          <h1 class="title">Sua Carteira</h1>
+          <p>Consulte os saldos de tokens DET e SOL da sua carteira conectada.</p>
+          <ul class="wallet-info">
+            <li class="wallet-balance">
+              <strong>Saldo DET:</strong> <span id="det-balance">0</span> DET
+            </li>
+            <li class="wallet-balance">
+              <strong>Saldo SOL:</strong> <span id="sol-balance">0</span> SOL
+            </li>
+          </ul>
+          <button class="refresh-button" onclick="refreshWalletBalances()">
+            <span class="button-text">Atualizar Saldos</span>
+          </button>
+        </div>
         <div id="presale" class="page">PreSale Page</div>
         <div id="whitepaper" class="page">Whitepaper Page</div>
         <div id="stake" class="page">Stake Page</div>
