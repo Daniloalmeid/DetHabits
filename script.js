@@ -121,13 +121,13 @@ async function updateWalletBalances() {
     try {
       const connection = new SolanaWeb3.Connection(SolanaWeb3.clusterApiUrl('mainnet-beta'), 'confirmed');
       const publicKey = new SolanaWeb3.PublicKey(walletAddress);
-      const balance = await connection.getBalance(publicKey);
+      const balance = await connection.getBalance(publicKey, 'confirmed');
       const solBalance = balance / SolanaWeb3.LAMPORTS_PER_SOL;
       solBalanceElement.textContent = solBalance.toFixed(4);
-      console.log("Saldo SOL atualizado:", solBalance);
+      console.log("Saldo SOL atualizado:", solBalance, "em Mainnet");
     } catch (err) {
       console.error("Erro ao consultar saldo SOL:", err);
-      showNotification("Erro ao consultar saldo SOL. Verifique sua conexão ou rede.", 'error');
+      showNotification(`Erro ao consultar saldo SOL: ${err.message}. Verifique a rede da Phantom (Mainnet).`, 'error');
       solBalanceElement.textContent = 'Erro';
     }
   }
@@ -260,7 +260,12 @@ function refreshWalletBalances() {
   showNotification('Saldos atualizados.', 'success');
 }
 
-// Conectar carteira Phantom com debounce
+// Detectar dispositivo móvel
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// Conectar carteira Phantom com suporte a Mobile Wallet Adapter
 let lastConnectAttempt = 0;
 async function connectWallet() {
   const now = Date.now();
@@ -273,23 +278,40 @@ async function connectWallet() {
 
   if (!window.solana) {
     console.error("Nenhuma carteira Solana detectada.");
-    showNotification("Nenhuma carteira Solana encontrada. Por favor, instale a Phantom Wallet: https://phantom.app/", 'error');
-    window.open('https://phantom.app/', '_blank');
+    if (isMobileDevice()) {
+      // Deep link para o app Phantom
+      const redirectUrl = encodeURIComponent(window.location.href);
+      window.location.href = `https://phantom.app/ul/v1/connect?app_url=${redirectUrl}`;
+      showNotification("Redirecionando para o aplicativo Phantom...", 'info');
+    } else {
+      showNotification("Nenhuma carteira Solana encontrada. Instale a Phantom Wallet: https://phantom.app/", 'error');
+      window.open('https://phantom.app/', '_blank');
+    }
     return;
   }
 
   if (!window.solana.isPhantom) {
     console.error("Phantom Wallet não detectada. Outra carteira Solana encontrada.");
-    showNotification("Apenas a Phantom Wallet é suportada. Por favor, instale-a: https://phantom.app/", 'error');
+    showNotification("Apenas a Phantom Wallet é suportada. Instale-a: https://phantom.app/", 'error');
     window.open('https://phantom.app/', '_blank');
     return;
   }
 
   try {
     console.log("Tentando conectar ao Phantom...");
-    const resp = await window.solana.connect();
+    let resp;
+    if (isMobileDevice()) {
+      // Tentar conexão com deep link no mobile
+      const redirectUrl = encodeURIComponent(window.location.href);
+      resp = await window.solana.connect({ onlyIfTrusted: false });
+      console.log("Conexão via mobile:", resp.publicKey.toString());
+    } else {
+      // Conexão no desktop
+      resp = await window.solana.connect();
+      console.log("Conexão via desktop:", resp.publicKey.toString());
+    }
+
     walletAddress = resp.publicKey.toString();
-    console.log("Carteira conectada:", walletAddress);
     if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
       throw new Error("Endereço de carteira inválido.");
     }
@@ -314,7 +336,7 @@ async function connectWallet() {
     }
   } catch (err) {
     console.error("Erro ao conectar Phantom:", err);
-    showNotification(`Erro ao conectar carteira: ${err.message}. Verifique se a Phantom Wallet está instalada, desbloqueada e na rede correta.`, 'error');
+    showNotification(`Erro ao conectar carteira: ${err.message}. Verifique se a Phantom Wallet está instalada, desbloqueada e na rede Mainnet.`, 'error');
   }
 }
 
