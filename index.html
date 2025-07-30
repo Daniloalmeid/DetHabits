@@ -6,8 +6,24 @@
   <title>DetHabits - Financial Habits & Rewards</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="assets/icon.png">
-  <!-- Importar @solana/web3.js via CDN -->
-  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+  <!-- Importar @solana/web3.js via CDN com múltiplos fallbacks -->
+  <script defer src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js" onerror="tryFallbackSolanaWeb3()"></script>
+  <script>
+    function tryFallbackSolanaWeb3() {
+      console.warn("Falha ao carregar @solana/web3.js do unpkg. Tentando CDN Cloudflare.");
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/solana-web3.js/1.95.3/index.iife.min.js';
+      script.defer = true;
+      script.onerror = () => {
+        console.warn("Falha ao carregar @solana/web3.js do Cloudflare. Tentando fallback local.");
+        const localScript = document.createElement('script');
+        localScript.src = 'assets/solana-web3.min.js';
+        localScript.defer = true;
+        document.head.appendChild(localScript);
+      };
+      document.head.appendChild(script);
+    }
+  </script>
 </head>
 <body>
   <div class="container">
