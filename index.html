@@ -15,14 +15,31 @@
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/solana-web3.js/1.95.3/index.iife.min.js';
       script.defer = true;
       script.onerror = () => {
-        console.warn("Falha ao carregar @solana/web3.js do Cloudflare. Tentando fallback local.");
+        console.warn("Falha ao carregar @solana/web3.js do Cloudflare. Tentando CDN jsDelivr.");
+        const jsDelivrScript = document.createElement('script');
+        jsDelivrScript.src = 'https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js';
+        jsDelivrScript.defer = true;
+        jsDelivrScript.onerror = () => {
+          console.warn("Falha ao carregar @solana/web3.js do jsDelivr. Tentando fallback local.");
+          const localScript = document.createElement('script');
+          localScript.src = 'assets/solana-web3.min.js'; // Certifique-se de que este arquivo está em C:\Users\Dimmer 2\DetHabits\assets
+          localScript.defer = true;
+          document.head.appendChild(localScript);
+        };
+        document.head.appendChild(jsDelivrScript);
+      };
+      document.head.appendChild(script);
+    }
+    // Verificar se SolanaWeb3 está carregado após inicialização
+    window.addEventListener('load', () => {
+      if (typeof SolanaWeb3 === 'undefined') {
+        console.error("SolanaWeb3 não carregado após todos os fallbacks. Tentando local novamente.");
         const localScript = document.createElement('script');
         localScript.src = 'assets/solana-web3.min.js';
         localScript.defer = true;
         document.head.appendChild(localScript);
-      };
-      document.head.appendChild(script);
-    }
+      }
+    });
   </script>
 </head>
 <body>
