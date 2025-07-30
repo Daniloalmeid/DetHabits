@@ -158,20 +158,20 @@ async function updateWalletBalances() {
 
   // Carregar saldos do localStorage com validação
   totalCredits = parseFloat(safeLocalStorageGet(`totalCredits_${walletAddress}`) || '0');
-  if (isNaN(totalCredits)) {
-    console.warn(`totalCredits_${walletAddress} inválido. Usando 0.`);
+  if (isNaN(totalCredits) || totalCredits < 0) {
+    console.warn(`totalCredits_${walletAddress} inválido (NaN ou negativo). Usando 0.`);
     totalCredits = 0;
     safeLocalStorageSet(`totalCredits_${walletAddress}`, '0');
   }
   autoStakeBalance = parseFloat(safeLocalStorageGet(`autoStakeBalance_${walletAddress}`) || '0');
-  if (isNaN(autoStakeBalance)) {
-    console.warn(`autoStakeBalance_${walletAddress} inválido. Usando 0.`);
+  if (isNaN(autoStakeBalance) || autoStakeBalance < 0) {
+    console.warn(`autoStakeBalance_${walletAddress} inválido (NaN ou negativo). Usando 0.`);
     autoStakeBalance = 0;
     safeLocalStorageSet(`autoStakeBalance_${walletAddress}`, '0');
   }
   manualStakeBalance = parseFloat(safeLocalStorageGet(`manualStakeBalance_${walletAddress}`) || '0');
-  if (isNaN(manualStakeBalance)) {
-    console.warn(`manualStakeBalance_${walletAddress} inválido. Usando 0.`);
+  if (isNaN(manualStakeBalance) || manualStakeBalance < 0) {
+    console.warn(`manualStakeBalance_${walletAddress} inválido (NaN ou negativo). Usando 0.`);
     manualStakeBalance = 0;
     safeLocalStorageSet(`manualStakeBalance_${walletAddress}`, '0');
   }
@@ -225,6 +225,7 @@ async function updateWalletBalances() {
 
   if (autoStakeBalanceElement && autoStakeStatusElement && transferAutoStakeButton) {
     autoStakeBalance = calculateStakeInterest(autoStakeBalance, autoStakeStartDate);
+    autoStakeBalance = isNaN(autoStakeBalance) || autoStakeBalance < 0 ? 0 : autoStakeBalance;
     autoStakeBalanceElement.textContent = autoStakeBalance.toFixed(2);
     safeLocalStorageSet(`autoStakeBalance_${walletAddress}`, autoStakeBalance.toString());
     safeLocalStorageSet(`autoStakeStartDate_${walletAddress}`, autoStakeStartDate);
@@ -244,6 +245,7 @@ async function updateWalletBalances() {
 
   if (manualStakeBalanceElement) {
     manualStakeBalance = calculateStakeInterest(manualStakeBalance, manualStakeStartDate);
+    manualStakeBalance = isNaN(manualStakeBalance) || manualStakeBalance < 0 ? 0 : manualStakeBalance;
     manualStakeBalanceElement.textContent = manualStakeBalance.toFixed(2);
     safeLocalStorageSet(`manualStakeBalance_${walletAddress}`, manualStakeBalance.toString());
     safeLocalStorageSet(`manualStakeStartDate_${walletAddress}`, manualStakeStartDate);
@@ -276,7 +278,9 @@ function startManualStake() {
   }
 
   totalCredits -= parsedAmount;
+  totalCredits = isNaN(totalCredits) || totalCredits < 0 ? 0 : totalCredits;
   manualStakeBalance += parsedAmount;
+  manualStakeBalance = isNaN(manualStakeBalance) || manualStakeBalance < 0 ? 0 : manualStakeBalance;
   if (!manualStakeStartDate) {
     manualStakeStartDate = new Date().toISOString();
     safeLocalStorageSet(`manualStakeStartDate_${walletAddress}`, manualStakeStartDate);
@@ -301,6 +305,7 @@ function endManualStake() {
   }
 
   totalCredits += manualStakeBalance;
+  totalCredits = isNaN(totalCredits) || totalCredits < 0 ? 0 : totalCredits;
   manualStakeBalance = 0;
   manualStakeStartDate = null;
   safeLocalStorageSet(`totalCredits_${walletAddress}`, totalCredits.toString());
@@ -330,6 +335,7 @@ function transferAutoStake() {
   }
 
   totalCredits += autoStakeBalance;
+  totalCredits = isNaN(totalCredits) || totalCredits < 0 ? 0 : totalCredits;
   autoStakeBalance = 0;
   autoStakeStartDate = null;
   safeLocalStorageSet(`totalCredits_${walletAddress}`, totalCredits.toString());
@@ -363,88 +369,93 @@ async function connectWallet() {
   }
   lastConnectAttempt = now;
 
-  if (!window.solana || !window.solana.isPhantom) {
-    console.error("Nenhuma carteira Phantom detectada.", { solana: !!window.solana, isPhantom: window.solana?.isPhantom });
-    if (isMobileDevice()) {
-      // Deep link para o app Phantom
-      const redirectUrl = encodeURIComponent(window.location.href);
-      const dappPublicKey = '4fmrGy2J7obA4C3TU1dwk5V3g3k3p69A3h3y6s3a2y4i'; // Substitua por sua chave pública de encriptação, se disponível
-      const deepLink = `https://phantom.app/ul/v1/connect?app_url=${redirectUrl}&dapp_encryption_public_key=${dappPublicKey}&redirect_link=${redirectUrl}`;
-      console.log("Redirecionando para deep link:", deepLink);
-      showNotification("Abrindo aplicativo Phantom. Certifique-se de que está instalado e configurado em Mainnet.", 'info');
-      window.location.href = deepLink;
-      // Fallback após 3 segundos se o aplicativo não abrir
-      setTimeout(() => {
-        if (document.visibilityState === 'visible') {
-          console.warn("Deep link não abriu o aplicativo Phantom. Redirecionando para loja de aplicativos.");
-          showNotification("Aplicativo Phantom não detectado. Instalando...", 'error');
-          const storeUrl = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-            ? 'https://apps.apple.com/app/phantom-crypto-wallet/id1598432977'
-            : 'https://play.google.com/store/apps/details?id=app.phantom';
-          window.location.href = storeUrl;
-        }
-      }, 3000);
-    } else {
-      showNotification("Nenhuma carteira Phantom encontrada. Instale a extensão: https://phantom.app/", 'error');
-      window.open('https://phantom.app/', '_blank');
+  // Tentar conexão direta se Phantom estiver injetado (ex.: navegador embutido)
+  if (window.solana && window.solana.isPhantom) {
+    try {
+      console.log("Phantom detectado no navegador. Tentando conexão direta...");
+      const resp = await window.solana.connect();
+      console.log("Conexão bem-sucedida:", resp.publicKey.toString());
+
+      walletAddress = resp.publicKey.toString();
+      if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
+        throw new Error("Endereço de carteira inválido.");
+      }
+      safeLocalStorageSet('walletAddress', walletAddress);
+      await initializeWalletData();
+      updateWalletUI();
+      updateMissionsUI();
+      updateWalletBalances();
+      showNotification(`Carteira conectada: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`, 'success');
+      navigateTo('missions');
+      if (!completedMissions.includes(1)) {
+        completeMission(1);
+      }
+      return;
+    } catch (err) {
+      console.error("Erro na conexão direta com Phantom:", err);
+      showNotification(`Erro ao conectar carteira: ${err.message}. Tentando deep link...`, 'error');
     }
+  }
+
+  // Deep link para dispositivos móveis
+  if (isMobileDevice()) {
+    const redirectUrl = encodeURIComponent(window.location.href);
+    const dappPublicKey = '4fmrGy2J7obA4C3TU1dwk5V3g3k3p69A3h3y6s3a2y4i'; // Substitua por sua chave pública de encriptação, se disponível
+    const deepLink = `https://phantom.app/ul/v1/connect?app_url=${redirectUrl}&dapp_encryption_public_key=${dappPublicKey}&redirect_link=${redirectUrl}&cluster=mainnet-beta`;
+    console.log("Redirecionando para deep link:", deepLink);
+    showNotification("Abrindo aplicativo Phantom. Certifique-se de que está instalado e configurado em Mainnet.", 'info');
+    window.location.href = deepLink;
+
+    // Fallback após 2 segundos se o aplicativo não abrir
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        console.warn("Deep link não abriu o aplicativo Phantom. Redirecionando para loja de aplicativos.");
+        showNotification("Aplicativo Phantom não detectado. Redirecionando para instalação...", 'error');
+        const storeUrl = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+          ? 'https://apps.apple.com/app/phantom-crypto-wallet/id1598432977'
+          : 'https://play.google.com/store/apps/details?id=app.phantom';
+        window.location.href = storeUrl;
+      }
+    }, 2000);
     return;
   }
 
-  try {
-    console.log("Tentando conectar ao Phantom...");
-    let resp = await window.solana.connect();
-    console.log("Conexão bem-sucedida:", resp.publicKey.toString());
+  // Desktop: redirecionar para instalação da extensão
+  console.error("Nenhuma carteira Phantom detectada no desktop.");
+  showNotification("Nenhuma carteira Phantom encontrada. Instale a extensão: https://phantom.app/", 'error');
+  window.open('https://phantom.app/', '_blank');
+}
 
-    walletAddress = resp.publicKey.toString();
-    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
-      throw new Error("Endereço de carteira inválido.");
-    }
-    safeLocalStorageSet('walletAddress', walletAddress);
-
-    // Carregar missões e créditos específicos da carteira
-    totalCredits = parseFloat(safeLocalStorageGet(`totalCredits_${walletAddress}`) || '0');
-    if (isNaN(totalCredits)) {
-      console.warn(`totalCredits_${walletAddress} inválido. Usando 0.`);
-      totalCredits = 0;
-      safeLocalStorageSet(`totalCredits_${walletAddress}`, '0');
-    }
-    completedMissions = JSON.parse(safeLocalStorageGet(`completedMissions_${walletAddress}`) || '[]') || [];
-    autoStakeBalance = parseFloat(safeLocalStorageGet(`autoStakeBalance_${walletAddress}`) || '0');
-    if (isNaN(autoStakeBalance)) {
-      console.warn(`autoStakeBalance_${walletAddress} inválido. Usando 0.`);
-      autoStakeBalance = 0;
-      safeLocalStorageSet(`autoStakeBalance_${walletAddress}`, '0');
-    }
-    manualStakeBalance = parseFloat(safeLocalStorageGet(`manualStakeBalance_${walletAddress}`) || '0');
-    if (isNaN(manualStakeBalance)) {
-      console.warn(`manualStakeBalance_${walletAddress} inválido. Usando 0.`);
-      manualStakeBalance = 0;
-      safeLocalStorageSet(`manualStakeBalance_${walletAddress}`, '0');
-    }
-    autoStakeStartDate = safeLocalStorageGet(`autoStakeStartDate_${walletAddress}`);
-    manualStakeStartDate = safeLocalStorageGet(`manualStakeStartDate_${walletAddress}`);
-    console.log("Saldos carregados na conexão:", {
-      totalCredits,
-      autoStakeBalance,
-      manualStakeBalance,
-      autoStakeStartDate,
-      manualStakeStartDate
-    });
-
-    updateWalletUI();
-    updateMissionsUI();
-    updateWalletBalances();
-    showNotification(`Carteira conectada: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`, 'success');
-    navigateTo('missions');
-    // Completar Missão 1 automaticamente ao conectar
-    if (!completedMissions.includes(1)) {
-      completeMission(1);
-    }
-  } catch (err) {
-    console.error("Erro ao conectar Phantom:", err);
-    showNotification(`Erro ao conectar carteira: ${err.message}. Verifique se a Phantom Wallet está instalada, desbloqueada e na rede Mainnet.`, 'error');
+// Inicializar dados da carteira
+async function initializeWalletData() {
+  totalCredits = parseFloat(safeLocalStorageGet(`totalCredits_${walletAddress}`) || '0');
+  if (isNaN(totalCredits) || totalCredits < 0) {
+    console.warn(`totalCredits_${walletAddress} inválido (NaN ou negativo). Usando 0.`);
+    totalCredits = 0;
+    safeLocalStorageSet(`totalCredits_${walletAddress}`, '0');
   }
+  completedMissions = JSON.parse(safeLocalStorageGet(`completedMissions_${walletAddress}`) || '[]') || [];
+  autoStakeBalance = parseFloat(safeLocalStorageGet(`autoStakeBalance_${walletAddress}`) || '0');
+  if (isNaN(autoStakeBalance) || autoStakeBalance < 0) {
+    console.warn(`autoStakeBalance_${walletAddress} inválido (NaN ou negativo). Usando 0.`);
+    autoStakeBalance = 0;
+    safeLocalStorageSet(`autoStakeBalance_${walletAddress}`, '0');
+  }
+  manualStakeBalance = parseFloat(safeLocalStorageGet(`manualStakeBalance_${walletAddress}`) || '0');
+  if (isNaN(manualStakeBalance) || manualStakeBalance < 0) {
+    console.warn(`manualStakeBalance_${walletAddress} inválido (NaN ou negativo). Usando 0.`);
+    manualStakeBalance = 0;
+    safeLocalStorageSet(`manualStakeBalance_${walletAddress}`, '0');
+  }
+  autoStakeStartDate = safeLocalStorageGet(`autoStakeStartDate_${walletAddress}`);
+  manualStakeStartDate = safeLocalStorageGet(`manualStakeStartDate_${walletAddress}`);
+  console.log("Saldos carregados na conexão:", {
+    totalCredits,
+    autoStakeBalance,
+    manualStakeBalance,
+    autoStakeStartDate,
+    manualStakeStartDate
+  });
 }
 
 // Desconectar carteira
@@ -568,7 +579,9 @@ function completeMission(missionId) {
   const availableAmount = reward * 0.9;
 
   totalCredits += availableAmount;
+  totalCredits = isNaN(totalCredits) || totalCredits < 0 ? 0 : totalCredits;
   autoStakeBalance += autoStakeAmount;
+  autoStakeBalance = isNaN(autoStakeBalance) || autoStakeBalance < 0 ? 0 : autoStakeBalance;
   if (!autoStakeStartDate) {
     autoStakeStartDate = new Date().toISOString();
     safeLocalStorageSet(`autoStakeStartDate_${walletAddress}`, autoStakeStartDate);
@@ -617,34 +630,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (walletAddress) {
-    totalCredits = parseFloat(safeLocalStorageGet(`totalCredits_${walletAddress}`) || '0');
-    if (isNaN(totalCredits)) {
-      console.warn(`totalCredits_${walletAddress} inválido. Usando 0.`);
-      totalCredits = 0;
-      safeLocalStorageSet(`totalCredits_${walletAddress}`, '0');
-    }
-    completedMissions = JSON.parse(safeLocalStorageGet(`completedMissions_${walletAddress}`) || '[]') || [];
-    autoStakeBalance = parseFloat(safeLocalStorageGet(`autoStakeBalance_${walletAddress}`) || '0');
-    if (isNaN(autoStakeBalance)) {
-      console.warn(`autoStakeBalance_${walletAddress} inválido. Usando 0.`);
-      autoStakeBalance = 0;
-      safeLocalStorageSet(`autoStakeBalance_${walletAddress}`, '0');
-    }
-    manualStakeBalance = parseFloat(safeLocalStorageGet(`manualStakeBalance_${walletAddress}`) || '0');
-    if (isNaN(manualStakeBalance)) {
-      console.warn(`manualStakeBalance_${walletAddress} inválido. Usando 0.`);
-      manualStakeBalance = 0;
-      safeLocalStorageSet(`manualStakeBalance_${walletAddress}`, '0');
-    }
-    autoStakeStartDate = safeLocalStorageGet(`autoStakeStartDate_${walletAddress}`);
-    manualStakeStartDate = safeLocalStorageGet(`manualStakeStartDate_${walletAddress}`);
-    console.log("Saldos carregados na inicialização:", {
-      totalCredits,
-      autoStakeBalance,
-      manualStakeBalance,
-      autoStakeStartDate,
-      manualStakeStartDate
-    });
+    await initializeWalletData();
   }
 
   updateWalletUI();
