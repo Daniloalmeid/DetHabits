@@ -30,7 +30,7 @@
       };
       document.head.appendChild(script);
     }
-    // Verificar se SolanaWeb3 está carregado após inicialização
+    // Verificar se SolanaWeb3 está carregado e limpar localStorage corrompido
     window.addEventListener('load', () => {
       if (typeof SolanaWeb3 === 'undefined') {
         console.error("SolanaWeb3 não carregado após todos os fallbacks. Tentando local novamente.");
@@ -38,6 +38,16 @@
         localScript.src = 'assets/solana-web3.min.js';
         localScript.defer = true;
         document.head.appendChild(localScript);
+      }
+      // Limpar localStorage corrompido
+      for (let key in localStorage) {
+        if (key.startsWith('totalCredits_') || key.startsWith('autoStakeBalance_') || key.startsWith('manualStakeBalance_')) {
+          const value = localStorage.getItem(key);
+          if (value === 'NaN' || value === 'undefined' || value === null || isNaN(parseFloat(value))) {
+            console.warn(`Chave corrompida encontrada: ${key} = ${value}. Redefinindo para 0.`);
+            localStorage.setItem(key, '0');
+          }
+        }
       }
     });
   </script>
@@ -78,7 +88,7 @@
 
     <!-- Conteúdo Principal -->
     <div class="main-card">
-      <button class="menu-button" onclick="toggleMenu()" aria-label="Toggle Menu">☰</button>
+      <button id="menu-toggle-button" class="menu-button" onclick="toggleMenu()">☰</button>
       <div class="content" id="content">
         <div id="home" class="page active">
           <h1 class="title">Welcome to DetHabits</h1>
