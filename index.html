@@ -22,7 +22,7 @@
         jsDelivrScript.onerror = () => {
           console.warn("Falha ao carregar @solana/web3.js do jsDelivr. Tentando fallback local.");
           const localScript = document.createElement('script');
-          localScript.src = 'assets/solana-web3.min.js';
+          localScript.src = 'assets/solana-web3.min.js'; // Certifique-se de que este arquivo está em C:\Users\Dimmer 2\DetHabits\assets
           localScript.defer = true;
           document.head.appendChild(localScript);
         };
@@ -30,20 +30,21 @@
       };
       document.head.appendChild(script);
     }
-    // Limpar localStorage corrompido
+    // Verificar se SolanaWeb3 está carregado e limpar localStorage corrompido
     window.addEventListener('load', () => {
       if (typeof SolanaWeb3 === 'undefined') {
-        console.error("SolanaWeb3 não carregado após fallbacks. Tentando local.");
+        console.error("SolanaWeb3 não carregado após todos os fallbacks. Tentando local novamente.");
         const localScript = document.createElement('script');
         localScript.src = 'assets/solana-web3.min.js';
         localScript.defer = true;
         document.head.appendChild(localScript);
       }
+      // Limpar localStorage corrompido
       for (let key in localStorage) {
         if (key.startsWith('totalCredits_') || key.startsWith('autoStakeBalance_') || key.startsWith('manualStakeBalance_')) {
           const value = localStorage.getItem(key);
           if (value === 'NaN' || value === 'undefined' || value === null || isNaN(parseFloat(value))) {
-            console.warn(`Chave corrompida: ${key} = ${value}. Redefinindo para 0.`);
+            console.warn(`Chave corrompida encontrada: ${key} = ${value}. Redefinindo para 0.`);
             localStorage.setItem(key, '0');
           }
         }
@@ -63,13 +64,13 @@
     <div class="menu" id="menu">
       <div class="menu-content">
         <div class="menu-spacer"></div>
-        <a href="#" class="menu-item" data-nav="home">Home</a>
-        <a href="#" class="menu-item" data-nav="missions">Missions</a>
-        <a href="#" class="menu-item" data-nav="wallet">Wallet</a>
-        <a href="#" class="menu-item" data-nav="presale">PreSale</a>
-        <a href="#" class="menu-item" data-nav="whitepaper">Whitepaper</a>
-        <a href="#" class="menu-item" data-nav="stake">Stake</a>
-        <a href="#" class="menu-item" data-nav="spend-credits">Spend Credits</a>
+        <a href="#" class="menu-item" onclick="navigateTo('home')">Home</a>
+        <a href="#" class="menu-item" onclick="navigateTo('missions')">Missions</a>
+        <a href="#" class="menu-item" onclick="navigateTo('wallet')">Wallet</a>
+        <a href="#" class="menu-item" onclick="navigateTo('presale')">PreSale</a>
+        <a href="#" class="menu-item" onclick="navigateTo('whitepaper')">Whitepaper</a>
+        <a href="#" class="menu-item" onclick="navigateTo('stake')">Stake</a>
+        <a href="#" class="menu-item" onclick="navigateTo('spend-credits')">Spend Credits</a>
         <div class="social-title">Official Social Media</div>
         <a href="https://twitter.com/DetHabits" target="_blank" class="menu-item">X (Twitter)</a>
         <a href="https://t.me/DetHabits" target="_blank" class="menu-item">Telegram</a>
@@ -87,7 +88,7 @@
 
     <!-- Conteúdo Principal -->
     <div class="main-card">
-      <button id="menu-toggle-button" class="menu-button" data-menu-button onclick="toggleMenu()">☰</button>
+      <button id="menu-toggle-button" class="menu-button" onclick="toggleMenu()">☰</button>
       <div class="content" id="content">
         <div id="home" class="page active">
           <h1 class="title">Welcome to DetHabits</h1>
