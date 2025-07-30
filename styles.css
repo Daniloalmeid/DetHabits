@@ -32,15 +32,15 @@ body {
   position: fixed;
   top: 0;
   left: -100%;
-  width: 300px; /* Largura fixa para um menu mais estreito */
-  max-width: 80%; /* Limite para telas menores */
+  width: 300px;
+  max-width: 80%;
   height: 100%;
   background: linear-gradient(#D4A017, #FFF3B0);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
   transition: left 0.3s ease;
   z-index: 1000;
   overflow-y: auto;
-  border-radius: 0 10px 10px 0; /* Bordas arredondadas à direita */
+  border-radius: 0 10px 10px 0;
 }
 
 .menu.active {
@@ -48,19 +48,19 @@ body {
 }
 
 .menu-content {
-  padding: 15px; /* Padding reduzido para melhor uso do espaço */
-  padding-top: 60px; /* Espaço extra no topo para evitar sobreposição */
+  padding: 15px;
+  padding-top: 60px;
 }
 
 .menu-spacer {
-  height: 20px; /* Reduzido para um menu mais compacto */
+  height: 20px;
 }
 
 .menu-item {
   display: block;
   padding: 10px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 16px; /* Tamanho de fonte menor para elegância */
+  font-size: 16px;
   color: #000;
   font-weight: 500;
   text-decoration: none;
@@ -69,7 +69,7 @@ body {
 
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.2);
-  padding-left: 10px; /* Efeito de deslocamento ao passar o mouse */
+  padding-left: 10px;
 }
 
 .social-title {
@@ -120,8 +120,8 @@ body {
 }
 
 .menu.active ~ .main-card .menu-button {
-  opacity: 0; /* Ícone desaparece quando o menu está aberto */
-  pointer-events: none; /* Impede cliques no ícone quando o menu está aberto */
+  opacity: 0;
+  pointer-events: none;
 }
 
 .menu-button:hover {
@@ -168,24 +168,26 @@ body {
   margin-bottom: 20px;
 }
 
-.join-button, .presale-button, .refresh-button {
+.join-button, .presale-button, .refresh-button, .stake-button {
   background: linear-gradient(#F4C430, #FFD700);
   padding: 14px 40px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   border: none;
   cursor: pointer;
-  margin: 20px auto; /* Centralizado */
+  margin: 10px;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.join-button:hover, .presale-button:hover, .refresh-button:hover {
+.join-button:hover, .presale-button:hover, .refresh-button:hover, .stake-button:hover:not(:disabled) {
   background: linear-gradient(#FFD700, #F4C430);
+  transform: scale(1.05);
 }
 
-.presale-button {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
+.stake-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .button-text {
@@ -219,25 +221,33 @@ body {
   padding: 0;
   text-align: left;
   color: #FFF;
-  max-width: 400px;
+  max-width: 500px;
   margin: 20px auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .missions-list li, .wallet-info li {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 12px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  margin: 10px 0;
+  margin: 8px 0;
   font-size: 16px;
 }
 
-.missions-list li span, .wallet-info li span {
+.missions-list li span, .wallet-info li span:not(.icon) {
   color: #FFD700;
   font-size: 14px;
   font-weight: 600;
+}
+
+.wallet-info li .icon {
+  margin-right: 10px;
+  font-size: 18px;
 }
 
 .mission-button {
@@ -261,6 +271,39 @@ body {
   cursor: not-allowed;
 }
 
+.wallet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+  max-width: 500px;
+}
+
+.wallet-section {
+  width: 100%;
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #FFD700;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.stake-info {
+  font-size: 14px;
+  color: #FFFFFF;
+  text-align: center;
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
 .reward-status {
   font-size: 16px;
   font-weight: 600;
@@ -274,7 +317,7 @@ body {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(42, 157, 143, 0.9); /* Verde semi-transparente */
+  background: rgba(42, 157, 143, 0.9);
   color: #FFF;
   padding: 15px 25px;
   border-radius: 10px;
@@ -291,15 +334,15 @@ body {
 }
 
 .notification.success {
-  background: rgba(42, 157, 143, 0.9); /* Verde para sucesso */
+  background: rgba(42, 157, 143, 0.9);
 }
 
 .notification.error {
-  background: rgba(230, 57, 70, 0.9); /* Vermelho para erro */
+  background: rgba(230, 57, 70, 0.9);
 }
 
 .notification.info {
-  background: rgba(69, 123, 157, 0.9); /* Azul para info */
+  background: rgba(69, 123, 157, 0.9);
 }
 
 .notification:not(.hidden) {
@@ -337,7 +380,7 @@ body {
   }
 
   .menu {
-    width: 280px; /* Menu mais estreito em dispositivos móveis */
+    width: 280px;
     max-width: 90%;
   }
 
@@ -361,19 +404,50 @@ body {
     padding: 10px 20px;
   }
 
+  .missions-list, .wallet-info {
+    max-width: 100%;
+    padding: 10px;
+  }
+
   .missions-list li, .wallet-info li {
     font-size: 14px;
     padding: 10px;
   }
 
-  .missions-list li span, .wallet-info li span {
+  .missions-list li span, .wallet-info li span:not(.icon) {
+    font-size: 13px;
+  }
+
+  .wallet-info li .icon {
+    font-size: 16px;
+  }
+
+  .join-button, .presale-button, .refresh-button, .stake-button {
+    padding: 12px 30px;
+    margin: 8px;
+  }
+
+  .button-text {
+    font-size: 16px;
+  }
+
+  .wallet-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .stake-info {
     font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
   .menu {
-    width: 260px; /* Ainda mais estreito em telas muito pequenas */
+    width: 260px;
   }
 
   .menu-item {
@@ -388,11 +462,21 @@ body {
     font-size: 24px;
   }
 
-  .join-button, .presale-button, .refresh-button {
-    padding: 12px 30px;
+  .join-button, .presale-button, .refresh-button, .stake-button {
+    padding: 10px 25px;
   }
 
   .button-text {
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  .wallet-info li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .wallet-info li .icon {
+    margin-right: 8px;
   }
 }

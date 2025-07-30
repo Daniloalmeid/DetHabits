@@ -66,22 +66,38 @@
             <li><strong>Missão 2:</strong> Seguir no X <span>(5 Credits)</span> <button class="mission-button" onclick="completeMission(2)">Completar</button></li>
             <li><strong>Missão 3:</strong> Entrar no Telegram <span>(5 Credits)</span> <button class="mission-button" onclick="completeMission(3)">Completar</button></li>
           </ul>
-          <p class="reward-status">Credits ganhos hoje: <span id="total-credits">0</span></p>
+          <p class="reward-status">Credits ganhos hoje: <span id="total-credits">0.00</span></p>
         </div>
         <div id="wallet" class="page">
           <h1 class="title">Sua Carteira</h1>
-          <p>Consulte os saldos de tokens DET e SOL da sua carteira conectada.</p>
-          <ul class="wallet-info">
-            <li class="wallet-balance">
-              <strong>Saldo DET:</strong> <span id="det-balance">0</span> DET
-            </li>
-            <li class="wallet-balance">
-              <strong>Saldo SOL:</strong> <span id="sol-balance">0</span> SOL
-            </li>
-          </ul>
-          <button class="refresh-button" onclick="refreshWalletBalances()">
-            <span class="button-text">Atualizar Saldos</span>
-          </button>
+          <p>Consulte os saldos e gerencie seus tokens DET e SOL.</p>
+          <p class="stake-info">Rendimento de 200% ao ano (~0.548% ao dia) para stakes automático e manual, calculado a cada hora.</p>
+          <div class="wallet-section">
+            <h2 class="section-title">Saldos</h2>
+            <ul class="wallet-info" id="wallet-info">
+              <li><span class="icon">💰</span><strong>DET Disponível:</strong> <span id="det-balance">0.00</span> DET</li>
+              <li><span class="icon">☀️</span><strong>SOL:</strong> <span id="sol-balance">0.0000</span> SOL</li>
+              <li><span class="icon">🔒</span><strong>Stake Automático (60 dias):</strong> <span id="auto-stake-balance">0.00</span> DET <span id="auto-stake-status"></span></li>
+              <li><span class="icon">📈</span><strong>Stake Manual:</strong> <span id="manual-stake-balance">0.00</span> DET</li>
+            </ul>
+          </div>
+          <div class="wallet-section">
+            <h2 class="section-title">Ações</h2>
+            <div class="wallet-actions">
+              <button class="stake-button" onclick="startManualStake()">
+                <span class="button-text">Iniciar Stake Manual</span>
+              </button>
+              <button class="stake-button" onclick="endManualStake()">
+                <span class="button-text">Encerrar Stake Manual</span>
+              </button>
+              <button class="stake-button" id="transfer-auto-stake" onclick="transferAutoStake()" disabled>
+                <span class="button-text">Transferir Stake Automático</span>
+              </button>
+              <button class="refresh-button" onclick="refreshWalletBalances()">
+                <span class="button-text">Atualizar Saldos</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div id="presale" class="page">PreSale Page</div>
         <div id="whitepaper" class="page">Whitepaper Page</div>
