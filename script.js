@@ -55,9 +55,17 @@ function updateWalletUI() {
 
 // Conectar carteira Phantom
 async function connectWallet() {
-  if (!window.solana || !window.solana.isPhantom) {
-    console.error("Phantom wallet não encontrado.");
-    alert("Phantom wallet not found. Please install it.");
+  if (!window.solana) {
+    console.error("Nenhuma carteira Solana detectada.");
+    alert("Nenhuma carteira Solana encontrada. Por favor, instale a Phantom Wallet: https://phantom.app/");
+    window.open('https://phantom.app/', '_blank');
+    return;
+  }
+
+  if (!window.solana.isPhantom) {
+    console.error("Phantom Wallet não detectada. Outra carteira Solana encontrada.");
+    alert("Apenas a Phantom Wallet é suportada. Por favor, instale-a: https://phantom.app/");
+    window.open('https://phantom.app/', '_blank');
     return;
   }
 
@@ -66,9 +74,12 @@ async function connectWallet() {
     const resp = await window.solana.connect();
     walletAddress = resp.publicKey.toString();
     console.log("Carteira conectada:", walletAddress);
+    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
+      throw new Error("Endereço de carteira inválido.");
+    }
     safeLocalStorageSet('walletAddress', walletAddress);
     updateWalletUI();
-    alert(`Wallet connected: ${walletAddress}`);
+    alert(`Carteira conectada: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`);
     navigateTo('missions');
     // Completar Missão 1 automaticamente ao conectar
     if (!completedMissions.includes(1)) {
@@ -76,15 +87,17 @@ async function connectWallet() {
     }
   } catch (err) {
     console.error("Erro ao conectar Phantom:", err);
-    alert("Erro ao conectar carteira: " + err.message);
+    alert(`Erro ao conectar carteira: ${err.message}. Verifique se a Phantom Wallet está instalada e desbloqueada.`);
   }
 }
 
-// Desconectar
+// Desconectar carteira
 async function disconnectWallet() {
   try {
-    await window.solana.disconnect();
-    console.log("Carteira desconectada.");
+    if (window.solana && window.solana.isPhantom) {
+      await window.solana.disconnect();
+      console.log("Carteira desconectada.");
+    }
   } catch (err) {
     console.warn("Erro ao desconectar:", err);
   }
@@ -92,7 +105,7 @@ async function disconnectWallet() {
   walletAddress = null;
   safeLocalStorageRemove('walletAddress');
   updateWalletUI();
-  alert("Wallet disconnected");
+  alert("Carteira desconectada");
   navigateTo('home');
 }
 
@@ -112,7 +125,7 @@ function navigateTo(page) {
   const protectedPages = ['missions', 'wallet', 'presale', 'whitepaper', 'stake', 'spend-credits'];
   if (protectedPages.includes(page) && !walletAddress) {
     console.warn("Tentativa de acessar página protegida sem carteira conectada:", page);
-    alert('Please connect your wallet first.');
+    alert('Por favor, conecte sua carteira primeiro.');
     return;
   }
 
@@ -158,7 +171,7 @@ function updateMissionsUI() {
 
 function completeMission(missionId) {
   if (!walletAddress) {
-    alert('Please connect your wallet first.');
+    alert('Por favor, conecte sua carteira primeiro.');
     return;
   }
 
@@ -169,7 +182,13 @@ function completeMission(missionId) {
 
   let reward = 0;
   if (missionId === 1) reward = 10; // Conectar carteira
-  else if (missionId === 2 || missionId === 3) reward = 5; // Seguir X, Telegram
+  else if (missionId === 2) {
+    window.open('https://twitter.com/DetHabits', '_blank');
+    reward = 5; // Seguir no X
+  } else if (missionId === 3) {
+    window.open('https://t.me/DetHabits', '_blank');
+    reward = 5; // Entrar no Telegram
+  }
 
   totalCredits += reward;
   completedMissions.push(missionId);
@@ -179,19 +198,19 @@ function completeMission(missionId) {
 
   updateMissionsUI();
   alert(`Missão ${missionId} completada! Você ganhou ${reward} Credits.`);
-
-  // Integração futura com Solana para tokens DET
-  // if (reward > 0) transferDET(walletAddress, reward);
 }
 
+// Reset de missões diárias
 function resetMissions() {
   const now = new Date();
   const estTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
-  if (estTime.getHours() === 6 && estTime.getMinutes() === 0) {
+  const lastReset = safeLocalStorageGet('lastReset') || '0';
+  if (estTime.getDate() !== parseInt(lastReset) && estTime.getHours() >= 6) {
     totalCredits = 0;
     completedMissions = [];
     safeLocalStorageSet('totalCredits', totalCredits);
     safeLocalStorageSet('completedMissions', JSON.stringify(completedMissions));
+    safeLocalStorageSet('lastReset', estTime.getDate());
     updateMissionsUI();
     console.log("Missões resetadas às 6h (Eastern Time).");
   }
@@ -200,33 +219,27 @@ function resetMissions() {
 // Verifica reset a cada minuto
 setInterval(resetMissions, 60000);
 
-// Atualiza UI ao carregar a página
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Inicializando site DetHabits...");
   walletAddress = safeLocalStorageGet('walletAddress');
+  if (walletAddress && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress)) {
+    walletAddress = null;
+    safeLocalStorageRemove('walletAddress');
+  }
   totalCredits = parseInt(safeLocalStorageGet('totalCredits') || '0');
   completedMissions = JSON.parse(safeLocalStorageGet('completedMissions') || '[]');
   updateWalletUI();
   updateMissionsUI();
-});
 
-// Integração com Solana (exemplo comentado para futura implementação)
-async function transferDET(recipient, amount) {
-  // Exemplo de código para transferência de tokens DET
-  /*
-  const connection = new Connection("https://api.mainnet-beta.solana.com");
-  const tokenMint = new PublicKey("ENDEREÇO_DO_TOKEN_DET");
-  const recipientAccount = new PublicKey(recipient);
-  const transaction = new Transaction().add(
-    Token.createTransferInstruction(
-      TOKEN_PROGRAM_ID,
-      fromTokenAccount,
-      toTokenAccount,
-      walletAddress,
-      [],
-      amount * Math.pow(10, 9) // Ajuste para decimais do token
-    )
-  );
-  await connection.sendTransaction(transaction, [window.solana]);
-  */
-}
+  // Verificar Phantom Wallet ao carregar
+  if (window.solana && window.solana.isPhantom) {
+    console.log("Phantom Wallet detectada.");
+    window.solana.on('connect', () => {
+      console.log("Evento de conexão disparado.");
+      connectWallet();
+    });
+  } else {
+    console.warn("Phantom Wallet não detectada ao carregar a página.");
+  }
+});
