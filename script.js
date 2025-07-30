@@ -12,7 +12,7 @@ async function loadSolanaWeb3() {
     console.log("SolanaWeb3 já está carregado.");
     return true;
   }
-  console.log("Tentando carregar @solana/web3.js dinamicamente...");
+  console.log("Tentando carregar @solana/web3.js...");
   const sources = [
     'https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/solana-web3.js/1.95.3/index.iife.min.js',
@@ -40,7 +40,7 @@ async function loadSolanaWeb3() {
       console.error(err.message);
     }
   }
-  console.error("Não foi possível carregar @solana/web3.js de nenhuma fonte.");
+  console.error("Não foi possível carregar @solana/web3.js.");
   return false;
 }
 
@@ -52,7 +52,7 @@ function safeLocalStorageGet(key) {
       console.warn(`Valor inválido para ${key}: ${value}. Retornando 0.`);
       return '0';
     }
-    console.log(`Recuperado ${key}:`, value);
+    console.log(`Recuperado ${key}: ${value}`);
     return value;
   } catch (err) {
     console.warn(`Erro ao acessar localStorage.getItem (${key}):`, err);
@@ -64,7 +64,7 @@ function safeLocalStorageSet(key, value) {
   try {
     const stringValue = (typeof value === 'number' ? value : parseFloat(value) || 0).toString();
     localStorage.setItem(key, stringValue);
-    console.log(`Salvo ${key}:`, stringValue);
+    console.log(`Salvo ${key}: ${stringValue}`);
     return true;
   } catch (err) {
     console.warn(`Erro ao acessar localStorage.setItem (${key}):`, err);
@@ -128,9 +128,16 @@ function updateWalletUI() {
     walletButton.innerHTML = walletAddress
       ? '<span class="button-text">Disconnect Wallet</span>'
       : '<span class="button-text">Connect Solana Wallet</span>';
-    walletButton.onclick = null; // Limpar eventos anteriores
+    walletButton.onclick = null;
+    walletButton.removeEventListener('click', connectWallet);
+    walletButton.removeEventListener('click', disconnectWallet);
+    walletButton.removeEventListener('touchstart', connectWallet);
+    walletButton.removeEventListener('touchstart', disconnectWallet);
     walletButton.addEventListener('click', walletAddress ? disconnectWallet : connectWallet);
-    walletButton.addEventListener('touchstart', walletAddress ? disconnectWallet : connectWallet);
+    walletButton.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      (walletAddress ? disconnectWallet : connectWallet)();
+    });
     walletAddressElement.textContent = walletAddress
       ? `Connected Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
       : '';
@@ -367,8 +374,9 @@ function refreshWalletBalances() {
 
 // Detectar dispositivo móvel
 function isMobileDevice() {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|SamsungBrowser|UCBrowser|Phantom/i.test(navigator.userAgent);
-  console.log("Dispositivo detectado:", isMobile ? "Mobile" : "Desktop", "UserAgent:", navigator.userAgent);
+  const userAgent = navigator.userAgent;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|SamsungBrowser|UCBrowser|Mobile|Phantom|CriOS/i.test(userAgent);
+  console.log("Dispositivo detectado:", isMobile ? "Mobile" : "Desktop", "UserAgent:", userAgent);
   return isMobile;
 }
 
@@ -383,7 +391,27 @@ async function connectWallet() {
   }
   lastConnectAttempt = now;
 
-  // Tentar conexão direta
+  if (isMobileDevice()) {
+    const redirectUrl = encodeURIComponent(window.location.href);
+    const deepLink = `https://phantom.app/ul/v1/connect?app_url=${redirectUrl}&cluster=mainnet-beta`;
+    console.log("Redirecionando para deep link:", deepLink);
+    showNotification("Abrindo aplicativo Phantom. Certifique-se de que está instalado e configurado em Mainnet.", 'info');
+    window.location.href = deepLink;
+
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        console.warn("Deep link não abriu o Phantom. Redirecionando para loja de aplicativos.");
+        showNotification("Phantom não detectado. Instale-o na loja de aplicativos.", 'error');
+        const storeUrl = /iPhone|iPad|iPod|CriOS/i.test(navigator.userAgent)
+          ? 'https://apps.apple.com/app/phantom-crypto-wallet/id1598432977'
+          : 'https://play.google.com/store/apps/details?id=app.phantom';
+        window.location.href = storeUrl;
+      }
+    }, 1000);
+    return;
+  }
+
+  // Desktop
   if (window.solana && window.solana.isPhantom) {
     try {
       console.log("Phantom detectado. Tentando conexão direta...");
@@ -411,28 +439,6 @@ async function connectWallet() {
     }
   }
 
-  // Deep link para dispositivos móveis
-  if (isMobileDevice()) {
-    const redirectUrl = encodeURIComponent(window.location.href);
-    const deepLink = `https://phantom.app/ul/v1/connect?app_url=${redirectUrl}&cluster=mainnet-beta`;
-    console.log("Redirecionando para deep link:", deepLink);
-    showNotification("Abrindo aplicativo Phantom. Certifique-se de que está instalado e configurado em Mainnet.", 'info');
-    window.location.href = deepLink;
-
-    setTimeout(() => {
-      if (document.visibilityState === 'visible') {
-        console.warn("Deep link não abriu o Phantom. Redirecionando para loja de aplicativos.");
-        showNotification("Phantom não detectado. Instale-o na loja de aplicativos.", 'error');
-        const storeUrl = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-          ? 'https://apps.apple.com/app/phantom-crypto-wallet/id1598432977'
-          : 'https://play.google.com/store/apps/details?id=app.phantom';
-        window.location.href = storeUrl;
-      }
-    }, 1000);
-    return;
-  }
-
-  // Desktop: redirecionar para instalação
   console.error("Nenhuma carteira Phantom detectada no desktop.");
   showNotification("Instale a extensão Phantom: https://phantom.app/", 'error');
   window.open('https://phantom.app/', '_blank');
@@ -499,7 +505,8 @@ function toggleMenu() {
   const menu = document.getElementById('menu');
   if (menu) {
     menu.classList.toggle('active');
-    console.log("Menu toggled:", menu.classList.contains('active') ? "aberto" : "fechado");
+    const transform = getComputedStyle(menu).transform;
+    console.log("Menu toggled:", menu.classList.contains('active') ? "aberto" : "fechado", "Transform:", transform);
   } else {
     console.error("Elemento #menu não encontrado.");
     showNotification("Erro: Menu não encontrado.", 'error');
@@ -646,8 +653,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Registrar eventos do menu
   const menuButton = document.querySelector('[data-menu-button]');
   if (menuButton) {
+    menuButton.removeEventListener('click', toggleMenu);
+    menuButton.removeEventListener('touchstart', toggleMenu);
     menuButton.addEventListener('click', toggleMenu);
-    menuButton.addEventListener('touchstart', toggleMenu);
+    menuButton.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      toggleMenu();
+    });
     console.log("Evento registrado para botão do menu.");
   } else {
     console.error("Botão do menu (#menu-toggle-button) não encontrado.");
@@ -658,6 +670,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const menuItems = document.querySelectorAll('.menu-item[data-nav]');
   menuItems.forEach(item => {
     const page = item.getAttribute('data-nav');
+    item.removeEventListener('click', navigateTo);
+    item.removeEventListener('touchstart', navigateTo);
     item.addEventListener('click', (e) => {
       e.preventDefault();
       navigateTo(page);
@@ -675,6 +689,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       connectWallet();
     });
   } else {
-    console.warn("Phantom Wallet não detectada.");
+    console.warn("Phantom Wallet não detectada na inicialização.");
   }
 });
