@@ -6,8 +6,11 @@
   <title>DetHabits - Financial Habits & Rewards</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="assets/icon.png">
-  <!-- Importar @solana/web3.js via CDN com múltiplos fallbacks -->
+  <!-- Importar @solana/web3.js via CDN com fallbacks -->
   <script defer src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js" onerror="tryFallbackSolanaWeb3()"></script>
+  <!-- Importar tweetnacl e tweetnacl-util para assinatura -->
+  <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
   <script>
     function tryFallbackSolanaWeb3() {
       console.warn("Falha ao carregar @solana/web3.js do unpkg. Tentando CDN Cloudflare.");
@@ -22,7 +25,7 @@
         jsDelivrScript.onerror = () => {
           console.warn("Falha ao carregar @solana/web3.js do jsDelivr. Tentando fallback local.");
           const localScript = document.createElement('script');
-          localScript.src = 'assets/solana-web3.min.js'; // Certifique-se de que este arquivo está em C:\Users\Dimmer 2\DetHabits\assets
+          localScript.src = 'assets/solana-web3.min.js';
           localScript.defer = true;
           document.head.appendChild(localScript);
         };
@@ -30,7 +33,8 @@
       };
       document.head.appendChild(script);
     }
-    // Verificar se SolanaWeb3 está carregado e limpar localStorage corrompido
+
+    // Verificar SolanaWeb3 e limpar localStorage corrompido
     window.addEventListener('load', () => {
       if (typeof SolanaWeb3 === 'undefined') {
         console.error("SolanaWeb3 não carregado após todos os fallbacks. Tentando local novamente.");
@@ -49,7 +53,88 @@
           }
         }
       }
+      // Tentar conexão automática com a Phantom
+      connectPhantom(true);
     });
+
+    // Função para detectar dispositivo móvel
+    function isMobile() {
+      return /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+    }
+
+    // Função para conectar à Phantom Wallet
+    async function connectPhantom(autoConnect = false) {
+      const walletButton = document.getElementById('wallet-button');
+      const walletAddress = document.getElementById('wallet-address');
+      try {
+        const provider = window.solana || window.phantom?.solana;
+
+        if (!provider || !provider.isPhantom) {
+          walletAddress.innerText = "Carteira Phantom não detectada. Instale a extensão ou aplicativo.";
+          return;
+        }
+
+        if (!isMobile()) {
+          // Desktop: Conexão direta
+          const { publicKey } = await provider.connect({ onlyIfTrusted: autoConnect });
+          const address = publicKey.toString();
+          walletAddress.innerText = `Carteira: ${address}`;
+          walletButton.querySelector('.button-text').innerText = 'Disconnect Wallet';
+          walletButton.onclick = disconnectPhantom;
+
+          // Assinatura para autenticação
+          const message = new TextEncoder().encode("Login seguro no DetHabits");
+          const signed = await provider.signMessage(message, "utf8");
+          const signatureBase64 = nacl.util.encodeBase64(signed.signature);
+          console.log(`Assinatura: ${signatureBase64}`); // Exibir no console (pode ser enviado ao backend)
+
+          // Atualizar saldos (assumindo que refreshWalletBalances existe em script.js)
+          if (typeof refreshWalletBalances === 'function') {
+            refreshWalletBalances();
+          }
+
+          // Completar missão 1 automaticamente
+          if (typeof completeMission === 'function') {
+            completeMission(1);
+          }
+        } else {
+          // Mobile: Deep link para assinatura
+          const keyPair = nacl.box.keyPair();
+          const publicKeyBase64 = nacl.util.encodeBase64(keyPair.publicKey);
+          
+          // Armazenar a chave privada no sessionStorage
+          sessionStorage.setItem('dappPrivateKey', nacl.util.encodeBase64(keyPair.secretKey));
+
+          const appUrl = encodeURIComponent(window.location.origin);
+          const redirectLink = encodeURIComponent(`${window.location.origin}/callback.html`);
+          const message = nacl.util.encodeBase64(new TextEncoder().encode("Login seguro no DetHabits"));
+
+          const phantomLink = `https://phantom.app/ul/v1/signMessage?app_url=${appUrl}&redirect_link=${redirectLink}&message=${message}&dapp_encryption_public_key=${publicKeyBase64}`;
+          
+          window.location.href = phantomLink;
+        }
+      } catch (err) {
+        console.error("Erro ao conectar:", err);
+        walletAddress.innerText = `Erro: ${err.message}`;
+      }
+    }
+
+    // Função para desconectar a carteira
+    async function disconnectPhantom() {
+      try {
+        const provider = window.solana || window.phantom?.solana;
+        if (provider && provider.isPhantom) {
+          await provider.disconnect();
+          document.getElementById('wallet-address').innerText = '';
+          const walletButton = document.getElementById('wallet-button');
+          walletButton.querySelector('.button-text').innerText = 'Connect Solana Wallet';
+          walletButton.onclick = () => connectPhantom(false);
+        }
+      } catch (err) {
+        console.error("Erro ao desconectar:", err);
+        document.getElementById('wallet-address').innerText = `Erro: ${err.message}`;
+      }
+    }
   </script>
 </head>
 <body>
@@ -94,7 +179,7 @@
           <h1 class="title">Welcome to DetHabits</h1>
           <img src="assets/bemvindo.png" alt="Welcome to DetHabits" class="image" onerror="this.src='https://via.placeholder.com/200'">
           <p id="wallet-address" class="address"></p>
-          <button id="wallet-button" class="join-button">
+          <button id="wallet-button" class="join-button" onclick="connectPhantom(false)">
             <span class="button-text">Connect Solana Wallet</span>
           </button>
           <button class="presale-button" onclick="navigateTo('presale')">

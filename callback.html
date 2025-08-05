@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phantom Callback</title>
+  <title>Phantom Callback - DetHabits</title>
   <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
+  <link rel="stylesheet" href="styles.css"> <!-- Reutiliza o mesmo CSS do projeto -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,11 +25,25 @@
       word-break: break-all;
       max-width: 90%;
     }
+    .back-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .back-button:hover {
+      background-color: #357abd;
+    }
   </style>
 </head>
 <body>
   <h2>Carteira Conectada!</h2>
   <p id="result">Processando...</p>
+  <button class="back-button" onclick="window.location.href='index.html'">Voltar ao DetHabits</button>
 
   <script>
     async function decryptData() {
@@ -63,18 +78,34 @@
         }
 
         const payload = JSON.parse(nacl.util.encodeUTF8(decryptedData));
-        document.getElementById("result").innerText = 
-          `Carteira: ${payload.public_key}\nAssinatura: ${nacl.util.encodeBase64(payload.signature)}`;
+        const publicKey = payload.public_key;
+        const signature = nacl.util.encodeBase64(payload.signature);
+        document.getElementById("result").innerText = `Carteira: ${publicKey}\nAssinatura: ${signature}`;
+
+        // Armazenar endereço no localStorage para persistência
+        localStorage.setItem('walletAddress', publicKey);
 
         // Limpar a chave privada após o uso
         sessionStorage.removeItem('dappPrivateKey');
+
+        // Completar missão 1 automaticamente (assumindo que completeMission existe em script.js)
+        if (typeof completeMission === 'function') {
+          completeMission(1);
+        }
       } catch (err) {
         console.error("Erro no callback:", err);
         document.getElementById("result").innerText = `Erro: ${err.message}`;
       }
     }
 
-    window.addEventListener('load', decryptData);
+    window.addEventListener('load', () => {
+      // Exibir endereço armazenado, se disponível
+      const storedAddress = localStorage.getItem('walletAddress');
+      if (storedAddress) {
+        document.getElementById("result").innerText = `Carteira: ${storedAddress}\nConectada anteriormente.`;
+      }
+      decryptData();
+    });
   </script>
 </body>
 </html>
