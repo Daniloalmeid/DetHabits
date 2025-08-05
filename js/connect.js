@@ -20,11 +20,15 @@ async function connectWallet() {
       const resp = await window.solana.connect();
       const walletAddress = resp.publicKey.toString();
       walletAddressDisplay.innerText = 'Carteira conectada: ' + walletAddress;
+      walletAddressDisplay.className = 'success';
       connectButton.style.display = 'none';
       disconnectButton.style.display = 'inline-block';
+      localStorage.setItem('userPublicKey', walletAddress);
+      setTimeout(() => window.location.href = 'dashboard.html', 1000);
     } catch (err) {
       console.error('Erro ao conectar:', err);
       walletAddressDisplay.innerText = 'Erro ao conectar à carteira.';
+      walletAddressDisplay.className = 'error';
     }
   } else if (isAndroid()) {
     const dappUrl = encodeURIComponent(window.location.href);
@@ -33,7 +37,7 @@ async function connectWallet() {
   } else if (isIOS()) {
     iosMessage.style.display = 'block';
   } else {
-    alert("Por favor, instale a extensão Phantom no seu navegador.");
+    alert('Por favor, instale a extensão Phantom no seu navegador.');
   }
 }
 
@@ -42,10 +46,14 @@ async function disconnectWallet() {
     try {
       await window.solana.disconnect();
       walletAddressDisplay.innerText = 'Carteira desconectada.';
+      walletAddressDisplay.className = '';
       connectButton.style.display = 'inline-block';
       disconnectButton.style.display = 'none';
+      localStorage.removeItem('userPublicKey');
     } catch (err) {
       console.error('Erro ao desconectar:', err);
+      walletAddressDisplay.innerText = 'Erro ao desconectar.';
+      walletAddressDisplay.className = 'error';
     }
   }
 }
@@ -57,15 +65,17 @@ window.addEventListener('load', async () => {
       if (resp.publicKey) {
         const walletAddress = resp.publicKey.toString();
         walletAddressDisplay.innerText = 'Carteira conectada: ' + walletAddress;
+        walletAddressDisplay.className = 'success';
         connectButton.style.display = 'none';
         disconnectButton.style.display = 'inline-block';
+        localStorage.setItem('userPublicKey', walletAddress);
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
       }
     } catch (err) {
       console.log('Conexão automática recusada.');
     }
   }
 
-  // Link especial para iOS abrir no app da Phantom
   if (isIOS()) {
     const currentUrl = encodeURIComponent(window.location.href);
     const phantomBrowseUrl = `https://phantom.app/ul/browse/${currentUrl}`;

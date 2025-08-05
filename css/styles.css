@@ -1,0 +1,55 @@
+/* Regras existentes do index.html */
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 50px;
+  background: #f0f0f0;
+}
+
+h2 {
+  color: #333;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #6200ea;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  margin: 10px;
+}
+
+button:hover {
+  background: #3700b3;
+}
+
+#walletAddress {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+#iosMessage {
+  display: none;
+  margin-top: 20px;
+  color: #333;
+}
+
+/* Novas regras para callback.html */
+#result {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.loading {
+  color: gray;
+}
+
+.error {
+  color: red;
+}
+
+.success {
+  color: green;
+}
