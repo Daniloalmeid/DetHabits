@@ -3,6 +3,8 @@ const disconnectButton = document.getElementById('disconnectButton');
 const walletAddressDisplay = document.getElementById('walletAddress');
 const iosMessage = document.getElementById('iosMessage');
 const openInPhantom = document.getElementById('openInPhantom');
+const habitsSection = document.getElementById('habitsSection');
+const habitList = document.getElementById('habitList');
 
 function isIOS() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
@@ -24,7 +26,7 @@ async function connectWallet() {
       connectButton.style.display = 'none';
       disconnectButton.style.display = 'inline-block';
       localStorage.setItem('userPublicKey', walletAddress);
-      setTimeout(() => window.location.href = 'dashboard.html', 1000);
+      showHabitsSection();
     } catch (err) {
       console.error('Erro ao conectar:', err);
       walletAddressDisplay.innerText = 'Erro ao conectar à carteira.';
@@ -50,11 +52,39 @@ async function disconnectWallet() {
       connectButton.style.display = 'inline-block';
       disconnectButton.style.display = 'none';
       localStorage.removeItem('userPublicKey');
+      habitsSection.style.display = 'none';
     } catch (err) {
       console.error('Erro ao desconectar:', err);
       walletAddressDisplay.innerText = 'Erro ao desconectar.';
       walletAddressDisplay.className = 'error';
     }
+  }
+}
+
+function showHabitsSection() {
+  habitsSection.style.display = 'block';
+  loadHabits();
+}
+
+function loadHabits() {
+  habitList.innerHTML = ''; // Limpar lista antes de carregar
+  const habits = [
+    { name: 'Beber água', completed: false },
+    { name: 'Exercício', completed: true }
+  ];
+  habits.forEach(habit => {
+    const div = document.createElement('div');
+    div.className = 'habit';
+    div.innerText = `${habit.name} - ${habit.completed ? 'Concluído' : 'Pendente'}`;
+    habitList.appendChild(div);
+  });
+}
+
+function addHabit() {
+  const name = prompt('Nome do hábito:');
+  if (name) {
+    alert(`Hábito "${name}" adicionado!`);
+    loadHabits(); // Recarregar lista (futuramente, salvar no back-end ou localStorage)
   }
 }
 
@@ -69,7 +99,7 @@ window.addEventListener('load', async () => {
         connectButton.style.display = 'none';
         disconnectButton.style.display = 'inline-block';
         localStorage.setItem('userPublicKey', walletAddress);
-        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        showHabitsSection();
       }
     } catch (err) {
       console.log('Conexão automática recusada.');

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DETHabits - Conectar Carteira</title>
+  <title>DETHabits - Conectar e Gerenciar Hábitos</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -12,6 +12,12 @@
   <button id="disconnectButton" style="display: none;">Desconectar</button>
   <p id="walletAddress">Aguardando...</p>
   <p id="iosMessage">Por favor, abra este site no aplicativo Phantom: <a id="openInPhantom" href="#">Abrir no Phantom</a></p>
+
+  <div id="habitsSection" style="display: none;">
+    <h3>Meus Hábitos</h3>
+    <div id="habitList"></div>
+    <button onclick="addHabit()">Adicionar Hábito</button>
+  </div>
 
   <script src="js/connect.js" defer></script>
 </body>
