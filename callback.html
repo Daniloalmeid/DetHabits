@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phantom Callback</title>
+  <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+      text-align: center;
+      word-break: break-all;
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+  <h2>Carteira Conectada!</h2>
+  <p id="result">Processando...</p>
+
+  <script>
+    async function decryptData() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const encryptedData = urlParams.get('data');
+        const nonce = urlParams.get('nonce');
+        const phantomPublicKey = urlParams.get('phantom_encryption_public_key');
+        const dappPrivateKeyBase64 = sessionStorage.getItem('dappPrivateKey');
+
+        if (!encryptedData || !nonce || !phantomPublicKey) {
+          document.getElementById("result").innerText = "Erro: Dados, nonce ou chave pública ausentes.";
+          return;
+        }
+
+        if (!dappPrivateKeyBase64) {
+          document.getElementById("result").innerText = "Erro: Chave privada do dApp não encontrada.";
+          return;
+        }
+
+        const dappPrivateKey = nacl.util.decodeBase64(dappPrivateKeyBase64);
+        const decryptedData = nacl.box.open(
+          nacl.util.decodeBase64(encryptedData),
+          nacl.util.decodeBase64(nonce),
+          nacl.util.decodeBase64(phantomPublicKey),
+          dappPrivateKey
+        );
+
+        if (!decryptedData) {
+          document.getElementById("result").innerText = "Erro: Falha ao descriptografar os dados.";
+          return;
+        }
+
+        const payload = JSON.parse(nacl.util.encodeUTF8(decryptedData));
+        document.getElementById("result").innerText = 
+          `Carteira: ${payload.public_key}\nAssinatura: ${nacl.util.encodeBase64(payload.signature)}`;
+
+        // Limpar a chave privada após o uso
+        sessionStorage.removeItem('dappPrivateKey');
+      } catch (err) {
+        console.error("Erro no callback:", err);
+        document.getElementById("result").innerText = `Erro: ${err.message}`;
+      }
+    }
+
+    window.addEventListener('load', decryptData);
+  </script>
+</body>
+</html>
