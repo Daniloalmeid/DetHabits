@@ -19,6 +19,49 @@
     <button onclick="addHabit()">Adicionar Hábito</button>
   </div>
 
+  <script>
+    const status = document.getElementById("status");
+
+    function isMobile() {
+      return /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+    }
+
+    function connectPhantom() {
+      if (window.solana && window.solana.isPhantom && !isMobile()) {
+        // Desktop com extensão
+        window.solana.connect()
+          .then(async ({ publicKey }) => {
+            status.innerText = "Carteira: " + publicKey.toString();
+
+            const message = new TextEncoder().encode("Login seguro no DetHabits");
+            const signed = await window.solana.signMessage(message, "utf8");
+
+            const signatureBase64 = btoa(String.fromCharCode(...signed.signature));
+            status.innerText += "\nAssinatura: " + signatureBase64;
+          })
+          .catch(err => {
+            console.error(err);
+            status.innerText = "Erro: " + err.message;
+          });
+      } else {
+        // Mobile: deep link com callback
+        const keyPair = nacl.box.keyPair();
+        const dappPublicKey = keyPair.publicKey;
+        const dappPrivateKey = keyPair.secretKey;
+
+        const publicKeyBase64 = nacl.util.encodeBase64(dappPublicKey);
+        const privateKeyBase64 = nacl.util.encodeBase64(dappPrivateKey);
+
+        const appUrl = encodeURIComponent("https://daniloalmeid.github.io/testecarteira/index.html");
+        const redirectLink = encodeURIComponent(`https://daniloalmeid.github.io/testecarteira/callback.html?dapp_private_key=${privateKeyBase64}`);
+
+        const phantomLink = `https://phantom.app/ul/v1/signAndSendTransaction?app_url=${appUrl}&redirect_link=${redirectLink}&dapp_encryption_public_key=${publicKeyBase64}&payload=${encodeURIComponent(btoa('Login seguro no DetHabits'))}`;
+
+        window.location.href = phantomLink;
+      }
+    }
+  </script>
+
   <script src="js/connect.js" defer></script>
 </body>
 </html>
